@@ -9,6 +9,7 @@ import {
   LogOut,
   Smartphone,
   CreditCard,
+  Send,
 } from 'lucide-react'
 
 const navItems = [
@@ -16,7 +17,8 @@ const navItems = [
   { path: '/conversations', label: 'المحادثات', icon: MessageSquare },
   { path: '/products', label: 'المنتجات', icon: Package },
   { path: '/knowledge-base', label: 'قاعدة المعرفة', icon: BookOpen },
-  { path: '/whatsapp', label: 'الواتساب', icon: Smartphone },
+  { path: '/whatsapp', label: 'ربط القنوات', icon: Smartphone },
+  { path: '/marketing', label: 'التسويق', icon: Send },
   { path: '/subscription', label: 'الاشتراك', icon: CreditCard },
   { path: '/settings', label: 'الإعدادات', icon: Settings },
 ]

@@ -14,6 +14,11 @@ interface StoreInfo {
   plan: string
   whatsapp_connected: boolean
   whatsapp_number: string | null
+  waba_id: string | null
+  whatsapp_phone_number_id: string | null
+  instagram_connected: boolean
+  instagram_page_id: string | null
+  instagram_username: string | null
 }
 
 interface AuthContextType {
@@ -24,6 +29,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, storeName: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  refreshStore: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -37,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loadStore(userId: string) {
     const { data } = await supabase
       .from('store_owners')
-      .select('id, store_name, store_name_ar, store_type, business_type, description, is_active, setup_completed, plan, whatsapp_connected, whatsapp_number')
+      .select('id, store_name, store_name_ar, store_type, business_type, description, is_active, setup_completed, plan, whatsapp_connected, whatsapp_number, waba_id, whatsapp_phone_number_id, instagram_connected, instagram_page_id, instagram_username')
       .eq('auth_user_id', userId)
       .single()
     setStore(data)
@@ -60,6 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  async function refreshStore() {
+    if (user) await loadStore(user.id)
+  }
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -87,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, store, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, store, loading, signIn, signUp, signOut, refreshStore }}>
       {children}
     </AuthContext.Provider>
   )
