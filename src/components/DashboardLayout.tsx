@@ -37,9 +37,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen" dir="rtl">
       {/* Sidebar */}
       <aside className="w-64 bg-secondary text-white flex flex-col shrink-0">
-        <div className="p-6 border-b border-white/10">
-          <h1 className="text-xl font-bold text-primary-light">رداد ستورز</h1>
-          <p className="text-sm text-white/60 mt-1">{store?.store_name || 'متجرك'}</p>
+        <div className="p-6 border-b border-white/10 flex items-center gap-3">
+          <img src="/logo.png" alt="رداد ستورز" className="w-10 h-10 rounded-full" />
+          <div>
+            <h1 className="text-lg font-bold text-primary-light">رداد ستورز</h1>
+            <p className="text-xs text-white/60">{store?.store_name || 'متجرك'}</p>
+          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">

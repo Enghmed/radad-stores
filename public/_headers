@@ -1,0 +1,7 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-XSS-Protection: 1; mode=block
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://cdn.moyasar.com https://www.facebook.com; style-src 'self' 'unsafe-inline' https://cdn.moyasar.com; frame-src https://www.facebook.com https://web.facebook.com https://api.moyasar.com; connect-src 'self' https://jchcpswvlpdatudrstzl.supabase.co https://graph.facebook.com https://api.moyasar.com https://cdn.moyasar.com; img-src 'self' data: https: blob:; font-src 'self' https://cdn.moyasar.com;
