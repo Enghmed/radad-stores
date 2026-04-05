@@ -220,7 +220,7 @@ export default function WhatsAppPage() {
         }
       },
       {
-        scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata',
+        scope: 'instagram_business_basic,instagram_business_manage_messages',
         return_scopes: true,
       }
     )
