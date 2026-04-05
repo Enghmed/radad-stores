@@ -218,7 +218,7 @@ export default function WhatsAppPage() {
         setLoading(false)
       },
       {
-        scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_messaging',
+        scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata',
         return_scopes: true,
       }
     )
