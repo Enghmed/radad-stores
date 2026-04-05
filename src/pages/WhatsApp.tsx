@@ -19,6 +19,7 @@ declare global {
 export default function WhatsAppPage() {
   const { store, user, refreshStore } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [igLoading, setIgLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -184,38 +185,39 @@ export default function WhatsAppPage() {
       return
     }
 
-    setLoading(true)
+    setIgLoading(true)
     setError(null)
 
     window.FB.login(
-      async (response: any) => {
+      (response: any) => {
         if (response.authResponse) {
           const accessToken = response.authResponse.accessToken
-          try {
-            // SECURITY: Send token to server-side edge function instead of calling Graph API from browser
-            const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/instagram-connect`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                store_id: store?.id,
-                access_token: accessToken,
-              }),
+          // SECURITY: Send token to server-side edge function instead of calling Graph API from browser
+          fetch(`${SUPABASE_FUNCTIONS_URL}/instagram-connect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              store_id: store?.id,
+              access_token: accessToken,
+            }),
+          })
+            .then(res => res.json())
+            .then(result => {
+              if (result.success) {
+                setSuccess(`تم ربط إنستقرام بنجاح! @${result.username}`)
+                refreshStore?.()
+              } else {
+                setError(result.error || 'حدث خطأ في ربط إنستقرام')
+              }
             })
-            const result = await res.json()
-
-            if (result.success) {
-              setSuccess(`تم ربط إنستقرام بنجاح! @${result.username}`)
-              refreshStore?.()
-            } else {
-              setError(result.error || 'حدث خطأ في ربط إنستقرام')
-            }
-          } catch (err: any) {
-            setError('حدث خطأ في الاتصال: ' + err.message)
-          }
+            .catch((err: any) => {
+              setError('حدث خطأ في الاتصال: ' + err.message)
+            })
+            .finally(() => setIgLoading(false))
         } else {
           setError('تم إلغاء عملية الربط')
+          setIgLoading(false)
         }
-        setLoading(false)
       },
       {
         scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata',
@@ -472,10 +474,10 @@ export default function WhatsAppPage() {
               </p>
               <button
                 onClick={handleInstagramConnect}
-                disabled={loading}
+                disabled={igLoading}
                 className="w-full py-3 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? (
+                {igLoading ? (
                   <>
                     <RefreshCw size={18} className="animate-spin" />
                     جاري الربط...
