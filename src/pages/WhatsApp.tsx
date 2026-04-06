@@ -222,6 +222,11 @@ export default function WhatsAppPage() {
       {
         scope: 'instagram_business_basic,instagram_business_manage_messages',
         return_scopes: true,
+        extras: {
+          setup: {
+            channel: 'IG_API_ONBOARDING',
+          },
+        },
       }
     )
   }, [store])
