@@ -76,7 +76,7 @@ export default function WhatsAppPage() {
         appId: META_APP_ID,
         cookie: true,
         xfbml: true,
-        version: 'v21.0',
+        version: 'v25.0',
       })
     }
 
@@ -220,7 +220,7 @@ export default function WhatsAppPage() {
         }
       },
       {
-        scope: 'instagram_business_basic,instagram_business_manage_messages',
+        scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_read_engagement',
         return_scopes: true,
         extras: {
           setup: {
