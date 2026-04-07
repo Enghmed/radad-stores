@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
-import { MessageCircle, CheckCircle, Wifi, WifiOff, Camera, Phone, RefreshCw, AlertCircle, Send, Loader2 } from 'lucide-react'
+import { MessageCircle, CheckCircle, Camera, Phone, RefreshCw, AlertCircle, Send, Loader2, Link2, Unlink, HelpCircle } from 'lucide-react'
 
 // Meta App Config
 const META_APP_ID = '1474338047691178'
@@ -88,8 +88,7 @@ export default function WhatsAppPage() {
     document.body.appendChild(script)
   }, [])
 
-  // Session logging message event listener — captures WABA ID and Phone Number ID
-  // from the Embedded Signup flow BEFORE the fbLoginCallback fires
+  // Session logging message event listener
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (typeof event.origin !== 'string' || !event.origin.endsWith('facebook.com')) return
@@ -192,7 +191,6 @@ export default function WhatsAppPage() {
       (response: any) => {
         if (response.authResponse) {
           const accessToken = response.authResponse.accessToken
-          // SECURITY: Send token to server-side edge function instead of calling Graph API from browser
           fetch(`${SUPABASE_FUNCTIONS_URL}/instagram-connect`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -320,296 +318,339 @@ export default function WhatsAppPage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">ربط القنوات</h1>
-        <p className="text-muted mt-1">وصّل واتساب وإنستقرام وتلقرام عشان الذكاء الاصطناعي يرد على عملائك وتستلم إشعاراتك</p>
-      </div>
+      <div dir="rtl" className="font-[Cairo] max-w-5xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold text-gray-900">ربط القنوات</h1>
+          <p className="text-gray-500 mt-2 text-base">وصّل واتساب وإنستقرام وتلقرام عشان الذكاء الاصطناعي يرد على عملائك</p>
+        </div>
 
-      {/* Status Messages */}
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm text-red-800">{error}</p>
-            <button onClick={() => setError(null)} className="text-xs text-red-600 underline mt-1">إغلاق</button>
+        {/* Connection Flow Visualization */}
+        <div className="mb-8 bg-gradient-to-l from-emerald-50 via-white to-emerald-50 rounded-2xl border border-emerald-100 p-5 animate-fade-in-up">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-sm">
+              <div className={`w-3 h-3 rounded-full ${whatsappConnected ? 'bg-emerald-500 animate-pulse-glow' : 'bg-gray-300'}`} />
+              <span className={whatsappConnected ? 'text-emerald-700 font-semibold' : 'text-gray-500'}>واتساب</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2 text-sm">
+              <div className={`w-3 h-3 rounded-full ${instagramConnected ? 'bg-pink-500 animate-pulse-glow' : 'bg-gray-300'}`} />
+              <span className={instagramConnected ? 'text-pink-700 font-semibold' : 'text-gray-500'}>إنستقرام</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2 text-sm">
+              <div className={`w-3 h-3 rounded-full ${telegramConnected ? 'bg-blue-500 animate-pulse-glow' : 'bg-gray-300'}`} />
+              <span className={telegramConnected ? 'text-blue-700 font-semibold' : 'text-gray-500'}>تلقرام</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <span className="text-emerald-700 font-semibold">رداد AI</span>
+            </div>
           </div>
         </div>
-      )}
-      {success && (
-        <div className="mb-4 bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
-          <CheckCircle size={20} className="text-green-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm text-green-800">{success}</p>
-            <button onClick={() => setSuccess(null)} className="text-xs text-green-600 underline mt-1">إغلاق</button>
-          </div>
-        </div>
-      )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* ========================================
-            WhatsApp Card
-        ======================================== */}
-        <div className="bg-surface rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${whatsappConnected ? 'bg-green-100' : 'bg-gray-100'}`}>
-              <Phone size={24} className={whatsappConnected ? 'text-green-600' : 'text-gray-400'} />
+        {/* Status Messages */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 animate-fade-in-up">
+            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <AlertCircle size={18} className="text-red-600" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-bold">واتساب</h2>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {whatsappConnected ? (
-                  <>
-                    <Wifi size={14} className="text-green-500" />
-                    <span className="text-sm text-green-600 font-medium">متصل</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff size={14} className="text-gray-400" />
-                    <span className="text-sm text-muted">غير متصل</span>
-                  </>
-                )}
-              </div>
+              <p className="text-sm text-red-800 font-medium">{error}</p>
+              <button onClick={() => setError(null)} className="text-xs text-red-500 hover:text-red-700 mt-1 font-medium">إغلاق</button>
             </div>
           </div>
-
-          {whatsappConnected ? (
-            <div className="space-y-3">
-              <div className="bg-background rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted">الرقم</span>
-                  <span className="font-medium text-sm" dir="ltr">{store?.whatsapp_number || '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted">الحالة</span>
-                  <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    الذكاء الاصطناعي نشط
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={handleWhatsAppDisconnect}
-                className="w-full py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
-              >
-                فصل الواتساب
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-muted">
-                اربط رقم واتساب للأعمال عشان الذكاء الاصطناعي يبدأ يرد على عملائك تلقائياً.
-                بس اضغط الزر وسجّل دخول بحساب فيسبوك.
-              </p>
-              <button
-                onClick={handleWhatsAppConnect}
-                disabled={loading}
-                className="w-full py-3 bg-[#25D366] text-white rounded-lg font-medium hover:bg-[#1da851] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <RefreshCw size={18} className="animate-spin" />
-                    جاري الربط...
-                  </>
-                ) : (
-                  <>
-                    <Phone size={18} />
-                    ربط واتساب
-                  </>
-                )}
-              </button>
-              <p className="text-xs text-muted text-center">
-                تحتاج حساب Meta Business وخط واتساب للأعمال
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* ========================================
-            Instagram Card
-        ======================================== */}
-        <div className="bg-surface rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${instagramConnected ? 'bg-pink-100' : 'bg-gray-100'}`}>
-              <Camera size={24} className={instagramConnected ? 'text-pink-600' : 'text-gray-400'} />
+        )}
+        {success && (
+          <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 animate-fade-in-up">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+              <CheckCircle size={18} className="text-emerald-600" />
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-bold">إنستقرام</h2>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {instagramConnected ? (
-                  <>
-                    <Wifi size={14} className="text-green-500" />
-                    <span className="text-sm text-green-600 font-medium">متصل</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff size={14} className="text-gray-400" />
-                    <span className="text-sm text-muted">غير متصل</span>
-                  </>
-                )}
-              </div>
+              <p className="text-sm text-emerald-800 font-medium">{success}</p>
+              <button onClick={() => setSuccess(null)} className="text-xs text-emerald-500 hover:text-emerald-700 mt-1 font-medium">إغلاق</button>
             </div>
           </div>
+        )}
 
-          {instagramConnected ? (
-            <div className="space-y-3">
-              <div className="bg-background rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted">الحساب</span>
-                  <span className="font-medium text-sm" dir="ltr">@{(store as any)?.instagram_username || '—'}</span>
+        {/* Channel Cards Grid */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* ========================================
+              WhatsApp Card
+          ======================================== */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in-up card-hover">
+            {/* Card Header */}
+            <div className={`p-4 ${whatsappConnected ? 'bg-gradient-to-l from-green-500 to-emerald-600' : 'bg-gradient-to-l from-gray-100 to-gray-50'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${whatsappConnected ? 'bg-white/20 backdrop-blur-sm' : 'bg-white shadow-sm'}`}>
+                  <Phone size={24} className={whatsappConnected ? 'text-white' : 'text-gray-400'} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted">الحالة</span>
-                  <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    الذكاء الاصطناعي نشط
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={handleInstagramDisconnect}
-                className="w-full py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
-              >
-                فصل إنستقرام
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-muted">
-                اربط حساب إنستقرام عشان الذكاء الاصطناعي يرد على رسائل العملاء في الدايركت تلقائياً.
-              </p>
-              <button
-                onClick={handleInstagramConnect}
-                disabled={igLoading}
-                className="w-full py-3 bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {igLoading ? (
-                  <>
-                    <RefreshCw size={18} className="animate-spin" />
-                    جاري الربط...
-                  </>
-                ) : (
-                  <>
-                    <Camera size={18} />
-                    ربط إنستقرام
-                  </>
-                )}
-              </button>
-              <p className="text-xs text-muted text-center">
-                تحتاج حساب إنستقرام للأعمال مرتبط بصفحة فيسبوك
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* ========================================
-            Telegram Card
-        ======================================== */}
-        <div className="bg-surface rounded-xl border border-border p-6 md:col-span-2">
-          <div className="flex items-center gap-3 mb-5">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${telegramConnected ? 'bg-blue-100' : 'bg-gray-100'}`}>
-              <Send size={24} className={telegramConnected ? 'text-blue-500' : 'text-gray-400'} />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-bold">تلقرام (الإشعارات)</h2>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {telegramConnected ? (
-                  <>
-                    <Wifi size={14} className="text-green-500" />
-                    <span className="text-sm text-green-600 font-medium">متصل — بتستلم إشعارات</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff size={14} className="text-gray-400" />
-                    <span className="text-sm text-muted">غير متصل</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-lg">
-            {telegramConnected ? (
-              <div className="space-y-3">
-                <div className="bg-background rounded-lg p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted">Chat ID</span>
-                    <span className="font-medium text-sm font-mono" dir="ltr">{storedTelegramChatId}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted">الوظيفة</span>
-                    <span className="text-sm text-blue-600 font-medium">إشعارات + رد على أسئلة العملاء</span>
+                <div className="flex-1">
+                  <h2 className={`text-lg font-bold ${whatsappConnected ? 'text-white' : 'text-gray-900'}`}>واتساب</h2>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className={`w-2 h-2 rounded-full ${whatsappConnected ? 'bg-green-300 animate-pulse' : 'bg-red-400'}`} />
+                    <span className={`text-xs font-medium ${whatsappConnected ? 'text-white/90' : 'text-red-500'}`}>
+                      {whatsappConnected ? 'متصل' : 'غير متصل'}
+                    </span>
                   </div>
                 </div>
-                <p className="text-xs text-muted">
-                  لما الذكاء الاصطناعي ما يعرف جواب سؤال، بيرسلك إشعار على تلقرام. ترد على الإشعار والذكاء الاصطناعي يتعلم الجواب ويرد تلقائياً المرة الجاية.
-                </p>
-                <button
-                  onClick={handleTelegramDisconnect}
-                  className="w-full py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
-                >
-                  فصل تلقرام
-                </button>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-muted">
-                  تلقرام يستخدم لإشعاراتك — لما الذكاء الاصطناعي ما يعرف جواب سؤال عميل، بيرسلك إشعار على تلقرام.
-                  ترد على الإشعار والذكاء الاصطناعي يرد على العميل ويحفظ الجواب للأبد.
-                </p>
+            </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
-                  <h3 className="font-bold text-sm text-blue-900">كيف تحصل على Chat ID؟</h3>
-                  <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
-                    <li>افتح تلقرام وابحث عن <span className="font-mono bg-blue-100 px-1 rounded">@RadadAIBot</span></li>
-                    <li>اضغط <strong>Start</strong> أو أرسل <span className="font-mono bg-blue-100 px-1 rounded">/start</span></li>
-                    <li>البوت بيرسلك رقم الـ Chat ID — انسخه وحطه هنا</li>
-                  </ol>
+            {/* Card Body */}
+            <div className="p-5">
+              {whatsappConnected ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-medium">الرقم</span>
+                      <span className="font-bold text-sm text-gray-900" dir="ltr">{store?.whatsapp_number || '---'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-medium">الحالة</span>
+                      <span className="text-xs text-emerald-600 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        AI نشط
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleWhatsAppDisconnect}
+                    className="w-full py-2.5 border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Unlink size={14} />
+                    فصل الواتساب
+                  </button>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Telegram Chat ID</label>
-                  <input
-                    type="text"
-                    value={telegramChatId}
-                    onChange={e => setTelegramChatId(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-mono"
-                    placeholder="مثال: 123456789"
-                    dir="ltr"
-                  />
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    اربط رقم واتساب للأعمال عشان الذكاء الاصطناعي يبدأ يرد تلقائياً.
+                  </p>
+                  <button
+                    onClick={handleWhatsAppConnect}
+                    disabled={loading}
+                    className="w-full py-3.5 bg-gradient-to-l from-[#25D366] to-[#128C7E] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-green-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <RefreshCw size={18} className="animate-spin" />
+                        جاري الربط...
+                      </>
+                    ) : (
+                      <>
+                        <Link2 size={18} />
+                        ربط واتساب
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[10px] text-gray-400 text-center">
+                    تحتاج حساب Meta Business وخط واتساب للأعمال
+                  </p>
                 </div>
+              )}
+            </div>
+          </div>
 
-                <button
-                  onClick={handleTelegramConnect}
-                  disabled={telegramSaving || !telegramChatId.trim()}
-                  className="w-full py-3 bg-[#0088cc] text-white rounded-lg font-medium hover:bg-[#006daa] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {telegramSaving ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      جاري الحفظ...
-                    </>
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      ربط تلقرام
-                    </>
-                  )}
-                </button>
+          {/* ========================================
+              Instagram Card
+          ======================================== */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in-up card-hover" style={{ animationDelay: '0.1s' }}>
+            {/* Card Header */}
+            <div className={`p-4 ${instagramConnected ? 'bg-gradient-to-l from-[#833AB4] via-[#FD1D1D] to-[#F77737]' : 'bg-gradient-to-l from-gray-100 to-gray-50'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${instagramConnected ? 'bg-white/20 backdrop-blur-sm' : 'bg-white shadow-sm'}`}>
+                  <Camera size={24} className={instagramConnected ? 'text-white' : 'text-gray-400'} />
+                </div>
+                <div className="flex-1">
+                  <h2 className={`text-lg font-bold ${instagramConnected ? 'text-white' : 'text-gray-900'}`}>إنستقرام</h2>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className={`w-2 h-2 rounded-full ${instagramConnected ? 'bg-pink-200 animate-pulse' : 'bg-red-400'}`} />
+                    <span className={`text-xs font-medium ${instagramConnected ? 'text-white/90' : 'text-red-500'}`}>
+                      {instagramConnected ? 'متصل' : 'غير متصل'}
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* Card Body */}
+            <div className="p-5">
+              {instagramConnected ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-medium">الحساب</span>
+                      <span className="font-bold text-sm text-gray-900" dir="ltr">@{(store as any)?.instagram_username || '---'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-medium">الحالة</span>
+                      <span className="text-xs text-emerald-600 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        AI نشط
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleInstagramDisconnect}
+                    className="w-full py-2.5 border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Unlink size={14} />
+                    فصل إنستقرام
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    اربط حساب إنستقرام عشان الذكاء الاصطناعي يرد على رسائل الدايركت.
+                  </p>
+                  <button
+                    onClick={handleInstagramConnect}
+                    disabled={igLoading}
+                    className="w-full py-3.5 bg-gradient-to-l from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-pink-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {igLoading ? (
+                      <>
+                        <RefreshCw size={18} className="animate-spin" />
+                        جاري الربط...
+                      </>
+                    ) : (
+                      <>
+                        <Link2 size={18} />
+                        ربط إنستقرام
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[10px] text-gray-400 text-center">
+                    تحتاج حساب إنستقرام للأعمال مرتبط بصفحة فيسبوك
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ========================================
+              Telegram Card
+          ======================================== */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in-up card-hover" style={{ animationDelay: '0.2s' }}>
+            {/* Card Header */}
+            <div className={`p-4 ${telegramConnected ? 'bg-gradient-to-l from-[#0088cc] to-[#229ED9]' : 'bg-gradient-to-l from-gray-100 to-gray-50'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${telegramConnected ? 'bg-white/20 backdrop-blur-sm' : 'bg-white shadow-sm'}`}>
+                  <Send size={24} className={telegramConnected ? 'text-white' : 'text-gray-400'} />
+                </div>
+                <div className="flex-1">
+                  <h2 className={`text-lg font-bold ${telegramConnected ? 'text-white' : 'text-gray-900'}`}>تلقرام</h2>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className={`w-2 h-2 rounded-full ${telegramConnected ? 'bg-blue-200 animate-pulse' : 'bg-red-400'}`} />
+                    <span className={`text-xs font-medium ${telegramConnected ? 'text-white/90' : 'text-red-500'}`}>
+                      {telegramConnected ? 'متصل' : 'غير متصل'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Body */}
+            <div className="p-5">
+              {telegramConnected ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-medium">Chat ID</span>
+                      <span className="font-bold text-sm font-mono text-gray-900" dir="ltr">{storedTelegramChatId}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-medium">الوظيفة</span>
+                      <span className="text-xs text-blue-600 font-bold">إشعارات + ردود</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    لما الذكاء الاصطناعي ما يعرف جواب سؤال، بيرسلك إشعار على تلقرام.
+                  </p>
+                  <button
+                    onClick={handleTelegramDisconnect}
+                    className="w-full py-2.5 border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Unlink size={14} />
+                    فصل تلقرام
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    استلم إشعارات عندما يحتاج الذكاء الاصطناعي مساعدتك.
+                  </p>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Telegram Chat ID</label>
+                    <input
+                      type="text"
+                      value={telegramChatId}
+                      onChange={e => setTelegramChatId(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 transition-all font-mono text-sm"
+                      placeholder="123456789"
+                      dir="ltr"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleTelegramConnect}
+                    disabled={telegramSaving || !telegramChatId.trim()}
+                    className="w-full py-3.5 bg-gradient-to-l from-[#0088cc] to-[#229ED9] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {telegramSaving ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        جاري الحفظ...
+                      </>
+                    ) : (
+                      <>
+                        <Link2 size={18} />
+                        ربط تلقرام
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Help Section */}
-      <div className="mt-6 bg-blue-50 rounded-xl p-4 flex items-start gap-3">
-        <MessageCircle size={20} className="text-blue-500 shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-medium text-blue-900">تحتاج مساعدة في الربط؟</p>
-          <p className="text-sm text-blue-700 mt-1">
-            تواصل معنا على تلقرام وبنساعدك تربط واتساب وإنستقرام وتلقرام خلال دقائق.
-            تأكد إن عندك حساب Meta Business وحساب واتساب/إنستقرام للأعمال.
-          </p>
+        {/* Telegram Setup Instructions (shown when not connected) */}
+        {!telegramConnected && (
+          <div className="mt-6 bg-blue-50 rounded-2xl border border-blue-100 p-5 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                <HelpCircle size={16} className="text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-blue-900 mb-2">كيف تحصل على Chat ID؟</h3>
+                <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                  <li>افتح تلقرام وابحث عن <span className="font-mono bg-blue-100 px-1.5 py-0.5 rounded text-xs">@RadadAIBot</span></li>
+                  <li>اضغط <strong>Start</strong> أو أرسل <span className="font-mono bg-blue-100 px-1.5 py-0.5 rounded text-xs">/start</span></li>
+                  <li>البوت بيرسلك رقم الـ Chat ID --- انسخه وحطه في الحقل أعلاه</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Help Section */}
+        <div className="mt-6 bg-gradient-to-l from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-5 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+              <MessageCircle size={16} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-emerald-900">تحتاج مساعدة في الربط؟</p>
+              <p className="text-sm text-emerald-700 mt-1 leading-relaxed">
+                تواصل معنا على تلقرام وبنساعدك تربط واتساب وإنستقرام وتلقرام خلال دقائق.
+                تأكد إن عندك حساب Meta Business وحساب واتساب/إنستقرام للأعمال.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

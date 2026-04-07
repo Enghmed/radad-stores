@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
-import { CreditCard, CheckCircle, AlertTriangle, Zap, Loader2, Shield } from 'lucide-react'
+import { CreditCard, CheckCircle, AlertTriangle, Zap, Loader2, Shield, Crown, Star, Clock, Receipt } from 'lucide-react'
 
-// Moyasar config — use TEST keys for testing, switch to LIVE for production
+// Moyasar config
 const MOYASAR_PUBLISHABLE_KEY = import.meta.env.VITE_MOYASAR_KEY || 'pk_test_cdiDBmmVM8oLjpvxgnVjikCVcFKM4cuuGjZC9SG6'
 const PAYMENT_CALLBACK_URL = `${window.location.origin}/subscription?payment=callback`
 const FUNCTIONS_URL = 'https://jchcpswvlpdatudrstzl.supabase.co/functions/v1'
@@ -34,7 +34,12 @@ export default function Subscription() {
   const isTrialExpired = plan === 'trial' && trialDaysLeft <= 0
   const planExpiresAt = (store as any)?.plan_expires_at ? new Date((store as any).plan_expires_at) : null
 
-  // Check for payment callback — verify payment SERVER-SIDE before updating plan
+  // Usage data (placeholder)
+  const usedReplies = 0
+  const maxReplies = plan === 'trial' ? 100 : 10000
+  const usagePercent = maxReplies > 0 ? Math.min((usedReplies / maxReplies) * 100, 100) : 0
+
+  // Check for payment callback
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('payment') === 'callback') {
@@ -42,7 +47,6 @@ export default function Subscription() {
       const status = params.get('status')
 
       if (status === 'paid' && paymentId) {
-        // SECURITY: Do NOT trust URL params. Call edge function to verify with Moyasar API
         const verifyPayment = async () => {
           if (!store?.id) return
           try {
@@ -93,7 +97,6 @@ export default function Subscription() {
         return
       }
 
-      // Load CSS
       if (!document.getElementById('moyasar-css')) {
         const css = document.createElement('link')
         css.id = 'moyasar-css'
@@ -102,7 +105,6 @@ export default function Subscription() {
         document.head.appendChild(css)
       }
 
-      // Load JS
       if (!document.getElementById('moyasar-js')) {
         const script = document.createElement('script')
         script.id = 'moyasar-js'
@@ -124,7 +126,6 @@ export default function Subscription() {
 
     await loadMoyasarSDK()
 
-    // Small delay for DOM to update
     setTimeout(() => {
       if (!formRef.current || !window.Moyasar) {
         setPaymentError('خطأ في تحميل نموذج الدفع')
@@ -132,10 +133,9 @@ export default function Subscription() {
         return
       }
 
-      // Clear previous form
       formRef.current.innerHTML = ''
 
-      const amount = planType === 'yearly' ? 100000 : 10000 // In halalas (1000 SAR or 100 SAR)
+      const amount = planType === 'yearly' ? 100000 : 10000
 
       try {
         window.Moyasar.init({
@@ -155,7 +155,6 @@ export default function Subscription() {
           supported_networks: ['visa', 'mastercard', 'mada'],
           on_completed: async function (payment: any) {
             if (payment.status === 'paid' && payment.id) {
-              // SECURITY: Verify payment server-side before updating plan
               try {
                 const res = await fetch(`${FUNCTIONS_URL}/verify-payment`, {
                   method: 'POST',
@@ -172,7 +171,6 @@ export default function Subscription() {
                   setPaymentError('لم نتمكن من التحقق من الدفع')
                 }
               } catch {
-                // Webhook will handle it as fallback
                 setPaymentSuccess(true)
                 setShowPayment(false)
                 await refreshStore?.()
@@ -194,227 +192,289 @@ export default function Subscription() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">الاشتراك</h1>
-        <p className="text-muted mt-1">إدارة اشتراكك والاستخدام</p>
-      </div>
-
-      {/* Payment Success */}
-      {paymentSuccess && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-5 flex items-start gap-3">
-          <CheckCircle size={24} className="text-green-500 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-bold text-green-800">تم الدفع بنجاح!</h3>
-            <p className="text-sm text-green-700 mt-1">تم تفعيل اشتراكك. الذكاء الاصطناعي جاهز يرد على عملائك.</p>
-            <button onClick={() => setPaymentSuccess(false)} className="text-xs text-green-600 underline mt-2">إغلاق</button>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Error */}
-      {paymentError && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm text-red-800">{paymentError}</p>
-            <button onClick={() => setPaymentError('')} className="text-xs text-red-600 underline mt-1">إغلاق</button>
-          </div>
-        </div>
-      )}
-
-      {/* Current Plan */}
-      <div className="bg-surface rounded-xl border border-border p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">خطتك الحالية</h2>
-          {plan === 'trial' && (
-            <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm rounded-full font-medium">
-              تجربة مجانية
-            </span>
-          )}
-          {plan === 'monthly' && (
-            <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full font-medium flex items-center gap-1">
-              <CheckCircle size={14} /> شهري
-            </span>
-          )}
-          {plan === 'yearly' && (
-            <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full font-medium flex items-center gap-1">
-              <CheckCircle size={14} /> سنوي
-            </span>
-          )}
+      <div dir="rtl" className="font-[Cairo] max-w-5xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold text-gray-900">الاشتراك</h1>
+          <p className="text-gray-500 mt-2 text-base">إدارة اشتراكك والاستخدام</p>
         </div>
 
-        {plan === 'trial' && !isTrialExpired && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Zap size={16} className="text-amber-600" />
-              <span className="font-medium text-sm">متبقي {trialDaysLeft} أيام من التجربة المجانية</span>
+        {/* Payment Success */}
+        {paymentSuccess && (
+          <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-start gap-3 animate-fade-in-up">
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+              <CheckCircle size={22} className="text-emerald-600" />
             </div>
-            <p className="text-xs text-muted">اشترك قبل انتهاء التجربة عشان ما ينقطع الذكاء الاصطناعي عن الرد</p>
-          </div>
-        )}
-
-        {isTrialExpired && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle size={16} className="text-red-600" />
-              <span className="font-medium text-sm text-red-700">انتهت التجربة المجانية</span>
-            </div>
-            <p className="text-xs text-muted">الذكاء الاصطناعي متوقف عن الرد. اشترك الحين عشان يرجع يشتغل</p>
-          </div>
-        )}
-
-        {(plan === 'monthly' || plan === 'yearly') && planExpiresAt && (
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle size={16} className="text-primary" />
-              <span className="font-medium text-sm">اشتراكك فعّال</span>
-            </div>
-            <p className="text-xs text-muted">
-              ينتهي في {planExpiresAt.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
-        )}
-
-        {/* Usage */}
-        <div>
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-muted">الردود المستخدمة هالشهر</span>
-            <span className="font-medium">٠ / {plan === 'trial' ? '١٠٠' : '١٠,٠٠٠'}</span>
-          </div>
-          <div className="w-full bg-border rounded-full h-2.5">
-            <div className="h-2.5 rounded-full bg-primary" style={{ width: '0%' }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Payment Form */}
-      {showPayment && (
-        <div className="bg-surface rounded-xl border-2 border-primary/30 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold">
-                {selectedPlan === 'yearly' ? 'الاشتراك السنوي — ١,٠٠٠ ريال' : 'الاشتراك الشهري — ١٠٠ ريال'}
-              </h2>
-              <p className="text-sm text-muted mt-1">ادخل بيانات الدفع</p>
-            </div>
-            <button
-              onClick={() => setShowPayment(false)}
-              className="text-muted hover:text-secondary text-xl p-1"
-            >
-              &times;
-            </button>
-          </div>
-
-          {paymentLoading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 size={24} className="animate-spin text-primary" />
-              <span className="text-sm text-muted mr-2">جاري تحميل نموذج الدفع...</span>
-            </div>
-          )}
-
-          {/* Moyasar form renders here */}
-          <div ref={formRef} className="moyasar-form" dir="ltr" />
-
-          <div className="flex items-center gap-2 mt-4 justify-center">
-            <Shield size={14} className="text-muted" />
-            <span className="text-xs text-muted">دفع آمن عبر Moyasar — مشفّر ومحمي</span>
-          </div>
-        </div>
-      )}
-
-      {/* Pricing Plans */}
-      {!showPayment && (
-        <>
-          <h2 className="text-lg font-bold mb-4">اختر خطتك</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {/* Monthly */}
-            <div className={`bg-surface rounded-xl border p-6 transition-all ${plan === 'monthly' ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}>
-              <h3 className="font-bold text-lg mb-1">شهري</h3>
-              <p className="text-3xl font-bold text-primary mb-1">١٠٠ <span className="text-base font-normal">ريال/شهر</span></p>
-              <ul className="text-sm text-muted space-y-1.5 mt-3 mb-5">
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> ١٠,٠٠٠ رد بالشهر</li>
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> منتجات غير محدودة</li>
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> قاعدة معرفة ذكية</li>
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> دعم فني</li>
-              </ul>
-              <button
-                onClick={() => startPayment('monthly')}
-                disabled={plan === 'monthly'}
-                className="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {plan === 'monthly' ? 'خطتك الحالية' : 'اشترك شهرياً'}
-              </button>
-            </div>
-
-            {/* Yearly */}
-            <div className={`bg-surface rounded-xl border p-6 transition-all relative ${plan === 'yearly' ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}>
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-3 py-1 rounded-full font-medium">
-                وفّر شهرين
-              </span>
-              <h3 className="font-bold text-lg mb-1">سنوي</h3>
-              <p className="text-3xl font-bold text-primary mb-1">١,٠٠٠ <span className="text-base font-normal">ريال/سنة</span></p>
-              <p className="text-xs text-muted">(٨٣ ريال/شهر)</p>
-              <ul className="text-sm text-muted space-y-1.5 mt-3 mb-5">
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> ١٠,٠٠٠ رد بالشهر</li>
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> منتجات غير محدودة</li>
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> قاعدة معرفة ذكية</li>
-                <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary shrink-0" /> دعم فني + أولوية</li>
-              </ul>
-              <button
-                onClick={() => startPayment('yearly')}
-                disabled={plan === 'yearly'}
-                className="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {plan === 'yearly' ? 'خطتك الحالية' : 'اشترك سنوياً'}
-              </button>
+              <h3 className="font-bold text-emerald-900 text-base">تم الدفع بنجاح!</h3>
+              <p className="text-sm text-emerald-700 mt-1">تم تفعيل اشتراكك. الذكاء الاصطناعي جاهز يرد على عملائك.</p>
+              <button onClick={() => setPaymentSuccess(false)} className="text-xs text-emerald-500 hover:text-emerald-700 mt-2 font-medium">إغلاق</button>
             </div>
           </div>
-        </>
-      )}
+        )}
 
-      {/* Payment Methods */}
-      <div className="bg-surface rounded-xl border border-border p-6 mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <CreditCard size={20} className="text-primary" />
-          <h2 className="text-lg font-bold">طرق الدفع المدعومة</h2>
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          <div className="px-4 py-2 bg-background rounded-lg border border-border text-sm font-medium flex items-center gap-2">
-            <div className="w-6 h-4 bg-[#1A1F71] rounded-sm flex items-center justify-center">
-              <span className="text-white text-[8px] font-bold">mada</span>
+        {/* Payment Error */}
+        {paymentError && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 animate-fade-in-up">
+            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <AlertTriangle size={18} className="text-red-600" />
             </div>
-            مدى
+            <div>
+              <p className="text-sm text-red-800 font-medium">{paymentError}</p>
+              <button onClick={() => setPaymentError('')} className="text-xs text-red-500 hover:text-red-700 mt-1 font-medium">إغلاق</button>
+            </div>
           </div>
-          <div className="px-4 py-2 bg-background rounded-lg border border-border text-sm font-medium">Visa</div>
-          <div className="px-4 py-2 bg-background rounded-lg border border-border text-sm font-medium">Mastercard</div>
-          <div className="px-4 py-2 bg-background rounded-lg border border-border text-sm font-medium">STC Pay</div>
-        </div>
-      </div>
+        )}
 
-      {/* Payment History */}
-      {history.length > 0 && (
-        <div className="bg-surface rounded-xl border border-border p-6">
-          <h2 className="text-lg font-bold mb-4">سجل المدفوعات</h2>
-          <div className="space-y-2">
-            {history.map((h: any) => (
-              <div key={h.id} className="flex items-center justify-between p-3 bg-background rounded-lg">
-                <div>
-                  <p className="text-sm font-medium">{h.plan_type === 'yearly' ? 'اشتراك سنوي' : 'اشتراك شهري'}</p>
-                  <p className="text-xs text-muted">{new Date(h.created_at).toLocaleDateString('ar-SA')}</p>
+        {/* Current Plan Status Card */}
+        <div className="relative overflow-hidden rounded-2xl mb-8 animate-fade-in-up">
+          <div className={`p-6 ${
+            plan === 'trial'
+              ? 'bg-gradient-to-l from-amber-500 via-orange-500 to-amber-600'
+              : plan === 'yearly'
+              ? 'bg-gradient-to-l from-emerald-600 via-teal-600 to-emerald-700'
+              : 'bg-gradient-to-l from-emerald-500 to-teal-600'
+          }`}>
+            {/* Decorative circles */}
+            <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-16 -translate-y-16" />
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-12 translate-y-12" />
+
+            <div className="relative z-10 flex items-start justify-between flex-wrap gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown size={20} className="text-white/90" />
+                  <span className="text-white/80 text-sm font-medium">خطتك الحالية</span>
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">{h.amount} ريال</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    h.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    {h.status === 'paid' ? 'مدفوع' : 'فشل'}
+                <h2 className="text-2xl font-bold text-white mb-1">
+                  {plan === 'trial' ? 'تجربة مجانية' : plan === 'monthly' ? 'الخطة الشهرية' : 'الخطة السنوية'}
+                </h2>
+                {plan === 'trial' && !isTrialExpired && (
+                  <p className="text-white/80 text-sm">متبقي <strong className="text-white">{trialDaysLeft}</strong> أيام من التجربة</p>
+                )}
+                {isTrialExpired && (
+                  <p className="text-red-200 text-sm font-bold">انتهت التجربة المجانية --- اشترك الحين</p>
+                )}
+                {(plan === 'monthly' || plan === 'yearly') && planExpiresAt && (
+                  <p className="text-white/80 text-sm">
+                    ينتهي في {planExpiresAt.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                )}
+              </div>
+              <div className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                isTrialExpired ? 'bg-red-500/30 text-red-100' : 'bg-white/20 text-white'
+              }`}>
+                {isTrialExpired ? 'منتهية' : plan === 'trial' ? 'مجانية' : 'فعّالة'}
+              </div>
+            </div>
+
+            {/* Usage Bar */}
+            <div className="relative z-10 mt-6 bg-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between text-sm mb-3">
+                <span className="text-white/80 font-medium">الردود المستخدمة هالشهر</span>
+                <span className="font-bold text-white">{usedReplies.toLocaleString('ar-SA')} / {maxReplies.toLocaleString('ar-SA')}</span>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-3 rounded-full bg-white transition-all duration-1000 ease-out"
+                  style={{ width: `${usagePercent}%` }}
+                />
+              </div>
+              <p className="text-white/60 text-xs mt-2">{usagePercent.toFixed(0)}% مستخدم</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Form */}
+        {showPayment && (
+          <div className="bg-white rounded-2xl border-2 border-emerald-200 shadow-lg shadow-emerald-500/10 p-6 mb-8 animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {selectedPlan === 'yearly' ? 'الاشتراك السنوي --- 1,000 ريال' : 'الاشتراك الشهري --- 100 ريال'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">ادخل بيانات الدفع</p>
+              </div>
+              <button
+                onClick={() => setShowPayment(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
+              >
+                &times;
+              </button>
+            </div>
+
+            {paymentLoading && (
+              <div className="flex items-center justify-center py-10 gap-3">
+                <Loader2 size={24} className="animate-spin text-emerald-500" />
+                <span className="text-sm text-gray-500">جاري تحميل نموذج الدفع...</span>
+              </div>
+            )}
+
+            <div ref={formRef} className="moyasar-form" dir="ltr" />
+
+            <div className="flex items-center gap-2 mt-5 justify-center bg-gray-50 rounded-xl py-3">
+              <Shield size={14} className="text-gray-400" />
+              <span className="text-xs text-gray-500">دفع آمن عبر Moyasar --- مشفّر ومحمي</span>
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Plans */}
+        {!showPayment && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">اختر خطتك</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Trial Plan */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 animate-fade-in-up relative">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mb-4">
+                  <Zap size={20} className="text-gray-500" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-1">التجربة المجانية</h3>
+                <p className="text-3xl font-bold text-gray-900 mb-1">0 <span className="text-sm font-normal text-gray-500">ريال</span></p>
+                <p className="text-xs text-gray-400 mb-5">10 أيام</p>
+                <ul className="text-sm text-gray-600 space-y-2.5 mb-6">
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> 100 رد بالشهر</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> قناة واحدة</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> قاعدة معرفة أساسية</li>
+                </ul>
+                <button
+                  disabled
+                  className="w-full py-3 bg-gray-100 text-gray-500 rounded-xl font-semibold cursor-not-allowed text-sm"
+                >
+                  {plan === 'trial' ? 'خطتك الحالية' : 'مجانية'}
+                </button>
+              </div>
+
+              {/* Monthly Plan - Highlighted */}
+              <div className="relative bg-white rounded-2xl p-6 animate-fade-in-up border-2 border-emerald-500 shadow-xl shadow-emerald-500/10" style={{ animationDelay: '0.1s' }}>
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-l from-emerald-600 to-emerald-500 text-white text-xs px-4 py-1.5 rounded-full font-bold shadow-lg shadow-emerald-500/30">
+                    الأكثر شيوعاً
                   </span>
                 </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+                  <Star size={20} className="text-emerald-600" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-1">شهري</h3>
+                <p className="text-3xl font-bold text-emerald-600 mb-1">100 <span className="text-sm font-normal text-gray-500">ريال/شهر</span></p>
+                <p className="text-xs text-gray-400 mb-5">تجدد تلقائياً</p>
+                <ul className="text-sm text-gray-600 space-y-2.5 mb-6">
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> 10,000 رد بالشهر</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> منتجات غير محدودة</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> قاعدة معرفة ذكية</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> دعم فني</li>
+                </ul>
+                <button
+                  onClick={() => startPayment('monthly')}
+                  disabled={plan === 'monthly'}
+                  className="w-full py-3.5 bg-gradient-to-l from-emerald-600 to-emerald-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  {plan === 'monthly' ? 'خطتك الحالية' : 'اشترك شهرياً'}
+                </button>
               </div>
-            ))}
+
+              {/* Yearly Plan */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
+                <div className="absolute -top-3 left-4">
+                  <span className="bg-amber-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">
+                    وفّر شهرين
+                  </span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+                  <Crown size={20} className="text-amber-600" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-1">سنوي</h3>
+                <p className="text-3xl font-bold text-gray-900 mb-1">1,000 <span className="text-sm font-normal text-gray-500">ريال/سنة</span></p>
+                <p className="text-xs text-emerald-600 font-semibold mb-5">83 ريال/شهر</p>
+                <ul className="text-sm text-gray-600 space-y-2.5 mb-6">
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> 10,000 رد بالشهر</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> منتجات غير محدودة</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> قاعدة معرفة ذكية</li>
+                  <li className="flex items-center gap-2"><CheckCircle size={15} className="text-emerald-500 shrink-0" /> دعم فني + أولوية</li>
+                </ul>
+                <button
+                  onClick={() => startPayment('yearly')}
+                  disabled={plan === 'yearly'}
+                  className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  {plan === 'yearly' ? 'خطتك الحالية' : 'اشترك سنوياً'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Supported Payment Methods */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <CreditCard size={16} className="text-emerald-600" />
+            </div>
+            <h2 className="text-base font-bold text-gray-900">طرق الدفع المدعومة</h2>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <div className="px-5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 flex items-center gap-2 hover:border-emerald-300 transition-colors">
+              <div className="w-7 h-5 bg-[#1A1F71] rounded flex items-center justify-center">
+                <span className="text-white text-[7px] font-bold">mada</span>
+              </div>
+              مدى
+            </div>
+            <div className="px-5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:border-emerald-300 transition-colors">Visa</div>
+            <div className="px-5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:border-emerald-300 transition-colors">Mastercard</div>
+            <div className="px-5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:border-emerald-300 transition-colors">STC Pay</div>
           </div>
         </div>
-      )}
+
+        {/* Payment History */}
+        {history.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <Receipt size={16} className="text-blue-600" />
+              </div>
+              <h2 className="text-base font-bold text-gray-900">سجل المدفوعات</h2>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-gray-100">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50/80">
+                    <th className="text-right py-3 px-4 font-semibold text-gray-600 text-xs">الخطة</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-600 text-xs">التاريخ</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-600 text-xs">المبلغ</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-600 text-xs">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {history.map((h: any) => (
+                    <tr key={h.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-gray-900">{h.plan_type === 'yearly' ? 'اشتراك سنوي' : 'اشتراك شهري'}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-gray-500">
+                        <div className="flex items-center gap-1.5">
+                          <Clock size={12} />
+                          {new Date(h.created_at).toLocaleDateString('ar-SA')}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-gray-900">{h.amount} ريال</td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold ${
+                          h.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                        }`}>
+                          {h.status === 'paid' ? (
+                            <><CheckCircle size={12} /> مدفوع</>
+                          ) : (
+                            <><AlertTriangle size={12} /> فشل</>
+                          )}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </DashboardLayout>
   )
 }

@@ -234,58 +234,98 @@ export default function Setup() {
     navigate('/dashboard')
   }
 
+  const inputClass = "w-full pr-12 pl-4 py-3.5 rounded-xl border border-gray-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all text-sm"
+  const inputClassSimple = "w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all text-sm"
+
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100" dir="rtl">
       {/* Header */}
-      <header className="bg-surface border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 py-4">
-          <h1 className="text-xl font-bold text-primary">رداد ستورز</h1>
-          <p className="text-sm text-muted mt-1">إعداد متجرك — {steps[currentIndex].label}</p>
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold gradient-text" style={{ fontFamily: 'Cairo, sans-serif' }}>رداد ستورز</h1>
+            <p className="text-xs text-gray-400 mt-0.5">إعداد متجرك</p>
+          </div>
+          <div className="text-sm text-gray-500 font-medium">
+            {currentIndex + 1} / {steps.length}
+          </div>
         </div>
       </header>
 
-      {/* Progress */}
-      <div className="max-w-3xl mx-auto px-6 py-6">
-        <div className="flex items-center justify-between mb-8">
-          {steps.map((step, i) => (
-            <div key={step.key} className="flex items-center gap-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                i < currentIndex ? 'bg-primary text-white' :
-                i === currentIndex ? 'bg-primary text-white' :
-                'bg-border text-muted'
-              }`}>
-                {i < currentIndex ? <CheckCircle size={20} /> : <step.icon size={20} />}
-              </div>
-              {i < steps.length - 1 && (
-                <div className={`hidden sm:block w-16 h-0.5 ${i < currentIndex ? 'bg-primary' : 'bg-border'}`} />
-              )}
-            </div>
-          ))}
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        {/* Premium Progress Bar */}
+        <div className="mb-10 animate-fade-in">
+          {/* Progress line */}
+          <div className="relative flex items-center justify-between mb-2">
+            {/* Background line */}
+            <div className="absolute top-5 right-5 left-5 h-0.5 bg-gray-200 rounded-full" />
+            {/* Active line */}
+            <div
+              className="absolute top-5 right-5 h-0.5 bg-gradient-to-l from-emerald-500 to-teal-400 rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }}
+            />
+
+            {steps.map((step, i) => {
+              const isCompleted = i < currentIndex
+              const isActive = i === currentIndex
+              return (
+                <div key={step.key} className="relative z-10 flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    isCompleted
+                      ? 'bg-gradient-to-br from-emerald-500 to-teal-400 text-white shadow-lg shadow-emerald-200'
+                      : isActive
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-400 text-white shadow-lg shadow-emerald-200 ring-4 ring-emerald-100'
+                        : 'bg-white text-gray-300 border-2 border-gray-200'
+                  }`}>
+                    {isCompleted ? <CheckCircle size={20} /> : <step.icon size={18} />}
+                  </div>
+                  <span className={`text-xs mt-2 font-medium transition-colors hidden sm:block ${
+                    isActive ? 'text-emerald-600' : isCompleted ? 'text-gray-600' : 'text-gray-400'
+                  }`}>
+                    {step.label}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Step: Store Info */}
         {currentStep === 'store' && (
-          <div className="bg-surface rounded-2xl border border-border p-8">
-            <h2 className="text-xl font-bold mb-2">معلومات متجرك</h2>
-            <p className="text-muted text-sm mb-6">هالمعلومات بتساعد الذكاء الاصطناعي يفهم طبيعة متجرك ويرد بشكل أفضل</p>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); saveStoreInfo() }}>
-              <div>
-                <label className="block text-sm font-medium mb-1">اسم المتجر</label>
-                <input
-                  type="text"
-                  value={storeName}
-                  onChange={e => setStoreName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="مثال: مطعم لذة"
-                  required
-                />
+          <div className="glass rounded-3xl border border-white/60 p-8 shadow-xl shadow-gray-200/40 animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center text-white shadow-md shadow-emerald-200">
+                <Store size={20} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">نوع النشاط</label>
+                <h2 className="text-xl font-bold text-gray-800">معلومات متجرك</h2>
+              </div>
+            </div>
+            <p className="text-gray-500 text-sm mb-8 mr-13">هالمعلومات بتساعد الذكاء الاصطناعي يفهم طبيعة متجرك ويرد بشكل أفضل</p>
+
+            <form className="space-y-5" onSubmit={e => { e.preventDefault(); saveStoreInfo() }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">اسم المتجر</label>
+                <div className="relative">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Store size={18} />
+                  </div>
+                  <input
+                    type="text"
+                    value={storeName}
+                    onChange={e => setStoreName(e.target.value)}
+                    className={inputClass}
+                    placeholder="مثال: مطعم لذة"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">نوع النشاط</label>
                 <select
                   value={businessType}
                   onChange={e => setBusinessType(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className={inputClassSimple}
                 >
                   <option value="">اختر نوع النشاط...</option>
                   <option value="restaurant">مطعم</option>
@@ -301,31 +341,48 @@ export default function Setup() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">وصف قصير عن متجرك</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">وصف قصير عن متجرك</label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className={inputClassSimple}
                   placeholder="مثال: مطعم سعودي متخصص في الكبسة والمندي، عندنا فرعين في الرياض..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">ساعات العمل</label>
-                <input
-                  type="text"
-                  value={workHours}
-                  onChange={e => setWorkHours(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="مثال: يومياً من ٩ ص لـ١٢ م، الجمعة مغلق"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">ساعات العمل</label>
+                <div className="relative">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={workHours}
+                    onChange={e => setWorkHours(e.target.value)}
+                    className={inputClass}
+                    placeholder="مثال: يومياً من ٩ ص لـ١٢ م، الجمعة مغلق"
+                  />
+                </div>
               </div>
               <button
                 type="submit"
                 disabled={saving || !storeName}
-                className="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                className="btn-primary w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {saving ? 'جاري الحفظ...' : 'التالي'}
+                {saving ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>
+                    التالي
+                    <ArrowLeft size={16} />
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -333,20 +390,32 @@ export default function Setup() {
 
         {/* Step: Products */}
         {currentStep === 'products' && (
-          <div className="bg-surface rounded-2xl border border-border p-8">
-            <h2 className="text-xl font-bold mb-2">أضف منتجاتك</h2>
-            <p className="text-muted text-sm mb-6">أضف منتجاتك أو خدماتك عشان الذكاء الاصطناعي يقدر يجاوب عنها</p>
+          <div className="glass rounded-3xl border border-white/60 p-8 shadow-xl shadow-gray-200/40 animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center text-white shadow-md shadow-emerald-200">
+                <Package size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">أضف منتجاتك</h2>
+              </div>
+            </div>
+            <p className="text-gray-500 text-sm mb-8 mr-13">أضف منتجاتك أو خدماتك عشان الذكاء الاصطناعي يقدر يجاوب عنها</p>
 
             {/* Added products list */}
             {products.length > 0 && (
               <div className="space-y-2 mb-6">
-                {products.map(p => (
-                  <div key={p.id} className="flex items-center justify-between bg-background border border-border rounded-xl px-4 py-3">
-                    <div>
-                      <p className="font-medium text-sm">{p.name}</p>
-                      <p className="text-xs text-muted">{p.price} ريال {p.description && `— ${p.description}`}</p>
+                {products.map((p, i) => (
+                  <div key={p.id} className="flex items-center justify-between bg-white/60 border border-gray-100 rounded-xl px-5 py-4 card-hover animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 text-sm font-bold">
+                        {i + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-gray-800">{p.name}</p>
+                        <p className="text-xs text-gray-400">{p.price} ريال {p.description && `- ${p.description}`}</p>
+                      </div>
                     </div>
-                    <button onClick={() => removeProduct(p.id)} className="text-red-400 hover:text-red-600 p-1">
+                    <button onClick={() => removeProduct(p.id)} className="text-gray-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -356,50 +425,55 @@ export default function Setup() {
 
             {/* Add product form */}
             {showAddProduct && (
-              <div className="bg-background border border-primary/30 rounded-xl p-5 mb-4 space-y-3">
-                <h3 className="font-medium text-sm mb-2">منتج جديد</h3>
+              <div className="bg-white/80 border border-emerald-100 rounded-2xl p-6 mb-6 space-y-4 animate-scale-in">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <Plus size={14} className="text-emerald-600" />
+                  </div>
+                  <h3 className="font-bold text-sm text-gray-700">منتج جديد</h3>
+                </div>
                 <div>
-                  <label className="block text-xs text-muted mb-1">اسم المنتج *</label>
+                  <label className="block text-xs text-gray-500 mb-1.5">اسم المنتج *</label>
                   <input
                     type="text"
                     value={newProduct.name}
                     onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                     placeholder="مثال: كيكة شوكولاتة"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-muted mb-1">السعر (ريال) *</label>
+                  <label className="block text-xs text-gray-500 mb-1.5">السعر (ريال) *</label>
                   <input
                     type="number"
                     value={newProduct.price}
                     onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                     placeholder="120"
                     dir="ltr"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-muted mb-1">وصف (اختياري)</label>
+                  <label className="block text-xs text-gray-500 mb-1.5">وصف (اختياري)</label>
                   <input
                     type="text"
                     value={newProduct.description}
                     onChange={e => setNewProduct({ ...newProduct, description: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                     placeholder="كيكة بلجيكية فاخرة تكفي ١٢ شخص"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-1">
                   <button
                     onClick={addProduct}
                     disabled={!newProduct.name || !newProduct.price}
-                    className="flex-1 py-2 bg-primary text-white text-sm rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                    className="btn-primary flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
                   >
-                    أضف
+                    أضف المنتج
                   </button>
                   <button
                     onClick={() => { setShowAddProduct(false); setNewProduct({ name: '', price: '', description: '' }) }}
-                    className="py-2 px-4 border border-border text-sm rounded-lg hover:bg-surface transition-colors"
+                    className="py-2.5 px-5 border border-gray-200 text-sm rounded-xl hover:bg-gray-50 transition-colors text-gray-600"
                   >
                     إلغاء
                   </button>
@@ -409,23 +483,30 @@ export default function Setup() {
 
             {/* Google Maps import */}
             {showGoogleImport && (
-              <div className="bg-background border border-primary/30 rounded-xl p-5 mb-4 space-y-3">
-                <h3 className="font-medium text-sm mb-2">استيراد من قوقل ماب</h3>
+              <div className="bg-white/80 border border-emerald-100 rounded-2xl p-6 mb-6 space-y-4 animate-scale-in">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg width="14" height="14" viewBox="0 0 24 24" className="text-blue-600" fill="currentColor">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                  </div>
+                  <h3 className="font-bold text-sm text-gray-700">استيراد من قوقل ماب</h3>
+                </div>
                 <div>
-                  <label className="block text-xs text-muted mb-1">رابط قوقل ماب</label>
+                  <label className="block text-xs text-gray-500 mb-1.5">رابط قوقل ماب</label>
                   <input
                     type="url"
                     value={googleMapsUrl}
                     onChange={e => setGoogleMapsUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                     placeholder="https://maps.google.com/..."
                     dir="ltr"
                   />
                 </div>
-                <p className="text-xs text-muted">هالخاصية قريباً بتكون متوفرة، الحين أضف منتجاتك يدوياً</p>
+                <p className="text-xs text-gray-400">هالخاصية قريبا بتكون متوفرة، الحين أضف منتجاتك يدويا</p>
                 <button
                   onClick={() => { setShowGoogleImport(false); setGoogleMapsUrl('') }}
-                  className="py-2 px-4 border border-border text-sm rounded-lg hover:bg-surface transition-colors"
+                  className="py-2.5 px-5 border border-gray-200 text-sm rounded-xl hover:bg-gray-50 transition-colors text-gray-600"
                 >
                   إغلاق
                 </button>
@@ -434,59 +515,75 @@ export default function Setup() {
 
             {/* Action buttons */}
             {!showAddProduct && !showGoogleImport && (
-              <div className="space-y-3 mb-6">
+              <div className="grid sm:grid-cols-2 gap-3 mb-6">
                 <button
                   onClick={() => { setShowAddProduct(true); setShowGoogleImport(false) }}
-                  className="w-full p-4 bg-background border-2 border-dashed border-primary/30 rounded-xl text-right hover:border-primary/60 hover:bg-primary/5 transition-all group"
+                  className="p-5 bg-white/60 border-2 border-dashed border-emerald-200 rounded-2xl text-right hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group card-hover"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <Plus size={20} className="text-primary" />
+                    <div className="w-11 h-11 bg-gradient-to-br from-emerald-100 to-teal-50 rounded-xl flex items-center justify-center group-hover:from-emerald-200 group-hover:to-teal-100 transition-colors">
+                      <Plus size={20} className="text-emerald-600" />
                     </div>
                     <div>
-                      <p className="font-medium">إضافة يدوياً</p>
-                      <p className="text-sm text-muted">أضف منتجاتك وحدة وحدة مع الأسعار</p>
+                      <p className="font-bold text-sm text-gray-700">إضافة يدويا</p>
+                      <p className="text-xs text-gray-400">أضف منتجاتك مع الأسعار</p>
                     </div>
                   </div>
                 </button>
 
                 <button
                   onClick={() => { setShowGoogleImport(true); setShowAddProduct(false) }}
-                  className="w-full p-4 bg-background border-2 border-dashed border-primary/30 rounded-xl text-right hover:border-primary/60 hover:bg-primary/5 transition-all group"
+                  className="p-5 bg-white/60 border-2 border-dashed border-gray-200 rounded-2xl text-right hover:border-blue-300 hover:bg-blue-50/50 transition-all group card-hover"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <svg width="20" height="20" viewBox="0 0 24 24" className="text-primary" fill="currentColor">
+                    <div className="w-11 h-11 bg-gradient-to-br from-blue-100 to-sky-50 rounded-xl flex items-center justify-center group-hover:from-blue-200 group-hover:to-sky-100 transition-colors">
+                      <svg width="20" height="20" viewBox="0 0 24 24" className="text-blue-600" fill="currentColor">
                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                       </svg>
                     </div>
                     <div>
-                      <p className="font-medium">استيراد من قوقل ماب</p>
-                      <p className="text-sm text-muted">حط رابط متجرك من قوقل ماب وبنستورد المعلومات</p>
+                      <p className="font-bold text-sm text-gray-700">استيراد من قوقل</p>
+                      <p className="text-xs text-gray-400">حط رابط متجرك من قوقل ماب</p>
                     </div>
                   </div>
                 </button>
               </div>
             )}
 
-            <p className="text-sm text-muted text-center mb-4">
-              {products.length > 0
-                ? `تم إضافة ${products.length} منتج`
-                : 'تقدر تضيف المنتجات لاحقاً من لوحة التحكم'
-              }
-            </p>
+            {/* Products count */}
+            <div className="text-center mb-6">
+              {products.length > 0 ? (
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-sm font-medium">
+                  <Package size={14} />
+                  تم إضافة {products.length} منتج
+                </span>
+              ) : (
+                <p className="text-sm text-gray-400">تقدر تضيف المنتجات لاحقا من لوحة التحكم</p>
+              )}
+            </div>
 
+            {/* Navigation */}
             <div className="flex gap-3">
-              <button onClick={goBack} className="flex-1 py-3 border border-border rounded-lg hover:bg-background transition-colors flex items-center justify-center gap-2">
+              <button onClick={goBack} className="flex-1 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-gray-600 font-medium text-sm">
                 <ArrowLeft size={16} className="rotate-180" />
                 رجوع
               </button>
               <button
                 onClick={saveProducts}
                 disabled={saving}
-                className="flex-1 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                className="btn-primary flex-1 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {saving ? 'جاري الحفظ...' : 'التالي'}
+                {saving ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>
+                    التالي
+                    <ArrowLeft size={16} />
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -494,31 +591,57 @@ export default function Setup() {
 
         {/* Step: WhatsApp */}
         {currentStep === 'whatsapp' && (
-          <div className="bg-surface rounded-2xl border border-border p-8">
-            <h2 className="text-xl font-bold mb-2">ربط الواتساب</h2>
-            <p className="text-muted text-sm mb-6">وصّل رقم الواتساب عشان الذكاء الاصطناعي يبدأ يرد على عملائك</p>
+          <div className="glass rounded-3xl border border-white/60 p-8 shadow-xl shadow-gray-200/40 animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center text-white shadow-md shadow-emerald-200">
+                <MessageCircle size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">ربط الواتساب</h2>
+              </div>
+            </div>
+            <p className="text-gray-500 text-sm mb-8 mr-13">وصّل رقم الواتساب عشان الذكاء الاصطناعي يبدأ يرد على عملائك</p>
 
-            <div className="bg-background rounded-xl p-6 mb-6">
+            <div className="bg-white/70 rounded-2xl p-8 mb-6 border border-gray-100">
               {whatsappConnected ? (
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle size={32} className="text-green-600" />
+                <div className="text-center py-6 animate-scale-in">
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-green-100">
+                    <CheckCircle size={40} className="text-green-500" />
                   </div>
-                  <h3 className="font-bold text-lg text-green-700 mb-1">تم ربط الواتساب بنجاح!</h3>
-                  <p className="text-sm text-muted">الذكاء الاصطناعي جاهز يرد على عملائك</p>
+                  <h3 className="font-bold text-xl text-gray-800 mb-2">تم ربط الواتساب بنجاح!</h3>
+                  <p className="text-sm text-gray-500">الذكاء الاصطناعي جاهز يرد على عملائك</p>
+                  <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full text-sm font-medium">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    متصل
+                  </div>
                 </div>
               ) : (
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone size={28} className="text-green-600" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-50 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <Phone size={32} className="text-green-500" />
                   </div>
-                  <h3 className="font-bold mb-2">اربط واتساب للأعمال</h3>
-                  <p className="text-sm text-muted mb-6">اضغط الزر وسجّل دخول بحسابك في فيسبوك. العملية تاخذ دقيقة وحدة.</p>
+                  <h3 className="font-bold text-lg text-gray-800 mb-2">اربط واتساب للأعمال</h3>
+                  <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">اضغط الزر وسجّل دخول بحسابك في فيسبوك. العملية تاخذ دقيقة وحدة.</p>
+
+                  {/* Status indicators */}
+                  <div className="flex items-center justify-center gap-6 mb-8">
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full" />
+                      غير متصل
+                    </div>
+                    <div className="w-px h-4 bg-gray-200" />
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      </svg>
+                      اتصال آمن
+                    </div>
+                  </div>
 
                   <button
                     onClick={connectWhatsApp}
                     disabled={whatsappConnecting || !fbReady}
-                    className="w-full py-4 bg-[#25D366] text-white rounded-xl font-bold text-lg hover:bg-[#20bd5a] transition-colors disabled:opacity-50 flex items-center justify-center gap-3"
+                    className="w-full max-w-sm mx-auto py-4 bg-[#25D366] text-white rounded-2xl font-bold text-lg hover:bg-[#20bd5a] transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-green-200 hover:shadow-xl hover:shadow-green-200 hover:-translate-y-0.5"
                   >
                     {whatsappConnecting ? (
                       <>
@@ -535,21 +658,23 @@ export default function Setup() {
                     )}
                   </button>
 
-                  <p className="text-xs text-muted mt-4">تحتاج حساب Meta Business وخط واتساب للأعمال</p>
+                  <p className="text-xs text-gray-400 mt-5">تحتاج حساب Meta Business وخط واتساب للأعمال</p>
                 </div>
               )}
             </div>
 
+            {/* Navigation */}
             <div className="flex gap-3">
-              <button onClick={goBack} className="flex-1 py-3 border border-border rounded-lg hover:bg-background transition-colors flex items-center justify-center gap-2">
+              <button onClick={goBack} className="flex-1 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-gray-600 font-medium text-sm">
                 <ArrowLeft size={16} className="rotate-180" />
                 رجوع
               </button>
-              <button onClick={goNext} className="flex-1 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors">
-                {whatsappConnected ? 'التالي' : 'التالي'}
+              <button onClick={goNext} className="btn-primary flex-1 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                التالي
+                <ArrowLeft size={16} />
               </button>
               {!whatsappConnected && (
-                <button onClick={goNext} className="py-3 px-4 text-muted hover:text-secondary text-sm transition-colors">
+                <button onClick={goNext} className="py-3.5 px-5 text-gray-400 hover:text-gray-600 text-sm transition-colors rounded-xl hover:bg-gray-50">
                   تخطي
                 </button>
               )}
@@ -559,27 +684,37 @@ export default function Setup() {
 
         {/* Step: Done */}
         {currentStep === 'done' && (
-          <div className="bg-surface rounded-2xl border border-border p-8 text-center">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={40} className="text-primary" />
+          <div className="glass rounded-3xl border border-white/60 p-10 shadow-xl shadow-gray-200/40 text-center animate-fade-in-up">
+            <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-100 animate-scale-in">
+              <CheckCircle size={48} className="text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">متجرك جاهز!</h2>
-            <p className="text-muted mb-4">
+            <h2 className="text-3xl font-bold text-gray-800 mb-3" style={{ fontFamily: 'Cairo, sans-serif' }}>متجرك جاهز!</h2>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
               تم إعداد متجرك بنجاح. الذكاء الاصطناعي جاهز يبدأ يرد على عملائك.
             </p>
 
-            {products.length > 0 && (
-              <p className="text-sm text-primary mb-2">تم إضافة {products.length} منتج</p>
-            )}
-            {whatsappConnected && (
-              <p className="text-sm text-green-600 mb-2">تم ربط واتساب بنجاح</p>
-            )}
+            {/* Status badges */}
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+              {products.length > 0 && (
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-sm font-medium animate-fade-in">
+                  <Package size={14} />
+                  {products.length} منتج
+                </span>
+              )}
+              {whatsappConnected && (
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full text-sm font-medium animate-fade-in">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  واتساب متصل
+                </span>
+              )}
+            </div>
 
             <button
               onClick={finishSetup}
-              className="mt-6 px-8 py-3 bg-primary text-white rounded-xl font-medium text-lg hover:bg-primary-dark transition-colors"
+              className="btn-primary px-12 py-4 rounded-2xl font-bold text-base inline-flex items-center gap-3 shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-200 hover:-translate-y-0.5 transition-all"
             >
               ادخل لوحة التحكم
+              <ArrowLeft size={18} />
             </button>
           </div>
         )}
