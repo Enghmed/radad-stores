@@ -5,8 +5,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { MessageCircle, CheckCircle, Phone, RefreshCw, AlertCircle, Send, Loader2, Link2, Unlink, HelpCircle } from 'lucide-react'
 
 // Meta App Config
-const META_APP_ID = '1474338047691178'
-const META_CONFIG_ID = '919168294428127'
+const META_APP_ID = '832615316524558'
+const META_CONFIG_ID = '931322849541908'
 const SUPABASE_FUNCTIONS_URL = 'https://jchcpswvlpdatudrstzl.supabase.co/functions/v1'
 
 declare global {

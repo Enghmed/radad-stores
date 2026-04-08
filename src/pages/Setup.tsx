@@ -11,8 +11,8 @@ declare global {
   }
 }
 
-const META_APP_ID = '1474338047691178'
-const META_CONFIG_ID = '919168294428127'
+const META_APP_ID = '832615316524558'
+const META_CONFIG_ID = '931322849541908'
 const SUPABASE_FUNCTIONS_URL = 'https://jchcpswvlpdatudrstzl.supabase.co/functions/v1'
 
 type Step = 'store' | 'products' | 'whatsapp' | 'done'
