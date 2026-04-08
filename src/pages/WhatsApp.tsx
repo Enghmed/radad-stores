@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
-import { MessageCircle, CheckCircle, Camera, Phone, RefreshCw, AlertCircle, Send, Loader2, Link2, Unlink, HelpCircle } from 'lucide-react'
+import { MessageCircle, CheckCircle, Phone, RefreshCw, AlertCircle, Send, Loader2, Link2, Unlink, HelpCircle } from 'lucide-react'
 
 // Meta App Config
 const META_APP_ID = '1474338047691178'
@@ -19,7 +19,6 @@ declare global {
 export default function WhatsAppPage() {
   const { store, user, refreshStore } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [igLoading, setIgLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -176,60 +175,6 @@ export default function WhatsAppPage() {
   }
 
   // ========================================
-  // Instagram Connection
-  // ========================================
-  const handleInstagramConnect = useCallback(() => {
-    if (!window.FB) {
-      setError('جاري تحميل Facebook SDK، حاول مرة ثانية')
-      return
-    }
-
-    setIgLoading(true)
-    setError(null)
-
-    window.FB.login(
-      (response: any) => {
-        if (response.authResponse) {
-          const accessToken = response.authResponse.accessToken
-          fetch(`${SUPABASE_FUNCTIONS_URL}/instagram-connect`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              store_id: store?.id,
-              access_token: accessToken,
-            }),
-          })
-            .then(res => res.json())
-            .then(result => {
-              if (result.success) {
-                setSuccess(`تم ربط إنستقرام بنجاح! @${result.username}`)
-                refreshStore?.()
-              } else {
-                setError(result.error || 'حدث خطأ في ربط إنستقرام')
-              }
-            })
-            .catch((err: any) => {
-              setError('حدث خطأ في الاتصال: ' + err.message)
-            })
-            .finally(() => setIgLoading(false))
-        } else {
-          setError('تم إلغاء عملية الربط')
-          setIgLoading(false)
-        }
-      },
-      {
-        scope: 'instagram_basic,instagram_manage_messages,pages_show_list,pages_read_engagement,pages_messaging,pages_manage_metadata',
-        return_scopes: true,
-        extras: {
-          setup: {
-            channel: 'IG_API_ONBOARDING',
-          },
-        },
-      }
-    )
-  }, [store])
-
-  // ========================================
   // Telegram Connection
   // ========================================
   async function handleTelegramConnect() {
@@ -294,27 +239,7 @@ export default function WhatsAppPage() {
     }
   }
 
-  const handleInstagramDisconnect = async () => {
-    if (!confirm('هل أنت متأكد من فصل إنستقرام؟')) return
-
-    const { error } = await supabase
-      .from('store_owners')
-      .update({
-        instagram_connected: false,
-        instagram_page_id: null,
-        instagram_username: null,
-        instagram_access_token: null,
-      })
-      .eq('id', store?.id)
-
-    if (!error) {
-      setSuccess('تم فصل إنستقرام')
-      refreshStore?.()
-    }
-  }
-
   const whatsappConnected = store?.whatsapp_connected || false
-  const instagramConnected = (store as any)?.instagram_connected || false
 
   return (
     <DashboardLayout>
@@ -322,7 +247,7 @@ export default function WhatsAppPage() {
         {/* Page Header */}
         <div className="mb-8 animate-fade-in">
           <h1 className="text-3xl font-bold text-gray-900">ربط القنوات</h1>
-          <p className="text-gray-500 mt-2 text-base">وصّل واتساب وإنستقرام وتلقرام عشان الذكاء الاصطناعي يرد على عملائك</p>
+          <p className="text-gray-500 mt-2 text-base">وصّل واتساب وتلقرام عشان الذكاء الاصطناعي يرد على عملائك</p>
         </div>
 
         {/* Connection Flow Visualization */}
@@ -331,11 +256,6 @@ export default function WhatsAppPage() {
             <div className="flex items-center gap-2 text-sm">
               <div className={`w-3 h-3 rounded-full ${whatsappConnected ? 'bg-emerald-500 animate-pulse-glow' : 'bg-gray-300'}`} />
               <span className={whatsappConnected ? 'text-emerald-700 font-semibold' : 'text-gray-500'}>واتساب</span>
-            </div>
-            <div className="w-8 h-px bg-gray-300" />
-            <div className="flex items-center gap-2 text-sm">
-              <div className={`w-3 h-3 rounded-full ${instagramConnected ? 'bg-pink-500 animate-pulse-glow' : 'bg-gray-300'}`} />
-              <span className={instagramConnected ? 'text-pink-700 font-semibold' : 'text-gray-500'}>إنستقرام</span>
             </div>
             <div className="w-8 h-px bg-gray-300" />
             <div className="flex items-center gap-2 text-sm">
@@ -375,7 +295,7 @@ export default function WhatsAppPage() {
         )}
 
         {/* Channel Cards Grid */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {/* ========================================
               WhatsApp Card
           ======================================== */}
@@ -454,86 +374,9 @@ export default function WhatsAppPage() {
           </div>
 
           {/* ========================================
-              Instagram Card
-          ======================================== */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in-up card-hover" style={{ animationDelay: '0.1s' }}>
-            {/* Card Header */}
-            <div className={`p-4 ${instagramConnected ? 'bg-gradient-to-l from-[#833AB4] via-[#FD1D1D] to-[#F77737]' : 'bg-gradient-to-l from-gray-100 to-gray-50'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${instagramConnected ? 'bg-white/20 backdrop-blur-sm' : 'bg-white shadow-sm'}`}>
-                  <Camera size={24} className={instagramConnected ? 'text-white' : 'text-gray-400'} />
-                </div>
-                <div className="flex-1">
-                  <h2 className={`text-lg font-bold ${instagramConnected ? 'text-white' : 'text-gray-900'}`}>إنستقرام</h2>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <div className={`w-2 h-2 rounded-full ${instagramConnected ? 'bg-pink-200 animate-pulse' : 'bg-red-400'}`} />
-                    <span className={`text-xs font-medium ${instagramConnected ? 'text-white/90' : 'text-red-500'}`}>
-                      {instagramConnected ? 'متصل' : 'غير متصل'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card Body */}
-            <div className="p-5">
-              {instagramConnected ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500 font-medium">الحساب</span>
-                      <span className="font-bold text-sm text-gray-900" dir="ltr">@{(store as any)?.instagram_username || '---'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500 font-medium">الحالة</span>
-                      <span className="text-xs text-emerald-600 font-bold flex items-center gap-1.5">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                        AI نشط
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleInstagramDisconnect}
-                    className="w-full py-2.5 border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Unlink size={14} />
-                    فصل إنستقرام
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    اربط حساب إنستقرام عشان الذكاء الاصطناعي يرد على رسائل الدايركت.
-                  </p>
-                  <button
-                    onClick={handleInstagramConnect}
-                    disabled={igLoading}
-                    className="w-full py-3.5 bg-gradient-to-l from-[#833AB4] via-[#FD1D1D] to-[#F77737] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-pink-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {igLoading ? (
-                      <>
-                        <RefreshCw size={18} className="animate-spin" />
-                        جاري الربط...
-                      </>
-                    ) : (
-                      <>
-                        <Link2 size={18} />
-                        ربط إنستقرام
-                      </>
-                    )}
-                  </button>
-                  <p className="text-[10px] text-gray-400 text-center">
-                    تحتاج حساب إنستقرام للأعمال مرتبط بصفحة فيسبوك
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ========================================
               Telegram Card
           ======================================== */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in-up card-hover" style={{ animationDelay: '0.2s' }}>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in-up card-hover" style={{ animationDelay: '0.1s' }}>
             {/* Card Header */}
             <div className={`p-4 ${telegramConnected ? 'bg-gradient-to-l from-[#0088cc] to-[#229ED9]' : 'bg-gradient-to-l from-gray-100 to-gray-50'}`}>
               <div className="flex items-center gap-3">
@@ -646,8 +489,8 @@ export default function WhatsAppPage() {
             <div>
               <p className="text-sm font-bold text-emerald-900">تحتاج مساعدة في الربط؟</p>
               <p className="text-sm text-emerald-700 mt-1 leading-relaxed">
-                تواصل معنا على تلقرام وبنساعدك تربط واتساب وإنستقرام وتلقرام خلال دقائق.
-                تأكد إن عندك حساب Meta Business وحساب واتساب/إنستقرام للأعمال.
+                تواصل معنا على تلقرام وبنساعدك تربط واتساب وتلقرام خلال دقائق.
+                تأكد إن عندك حساب Meta Business وحساب واتساب للأعمال.
               </p>
             </div>
           </div>

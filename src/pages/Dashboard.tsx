@@ -148,7 +148,7 @@ function ConversationItem({
   name: string
   message: string
   time: string
-  platform: 'whatsapp' | 'instagram'
+  platform: 'whatsapp'
   unread?: boolean
 }) {
   const initials = name
@@ -166,11 +166,9 @@ function ConversationItem({
         </div>
         {/* Platform badge */}
         <div
-          className={`absolute -bottom-0.5 -left-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold shadow-sm border-2 border-white ${
-            platform === 'whatsapp' ? 'bg-green-500' : 'bg-gradient-to-br from-purple-500 to-pink-500'
-          }`}
+          className="absolute -bottom-0.5 -left-0.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold shadow-sm border-2 border-white bg-green-500"
         >
-          {platform === 'whatsapp' ? 'W' : 'I'}
+          W
         </div>
       </div>
 
@@ -318,7 +316,7 @@ export default function Dashboard() {
                 </div>
                 <p className="font-bold text-secondary/80">لا توجد محادثات بعد</p>
                 <p className="text-sm text-muted mt-2 max-w-xs mx-auto leading-relaxed">
-                  بمجرد أن يراسلك عميل على الواتساب أو إنستغرام، ستظهر المحادثات هنا تلقائيًا
+                  بمجرد أن يراسلك عميل على الواتساب، ستظهر المحادثات هنا تلقائيًا
                 </p>
                 <a
                   href="/channels"

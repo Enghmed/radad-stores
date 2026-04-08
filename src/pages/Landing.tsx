@@ -307,7 +307,7 @@ export default function Landing() {
   const features = [
     { icon: <MessageSquare size={24} />, title: 'رد فوري بالعامي', desc: 'الذكاء الاصطناعي يرد بلهجة سعودية طبيعية. عملائك يحسون إنهم يكلمون شخص حقيقي.', gradient: 'from-emerald-400 to-teal-500' },
     { icon: <Brain size={24} />, title: 'يتعلم ذاتياً', desc: 'إذا جاه سؤال ما يعرف جوابه — يرسلك على تلقرام. ترد مرة وحدة ويتذكر للأبد.', gradient: 'from-violet-400 to-purple-500' },
-    { icon: <Globe size={24} />, title: 'واتساب + إنستقرام', desc: 'يرد على العملاء في واتساب والدايركت. قناتين بذكاء اصطناعي واحد.', gradient: 'from-blue-400 to-cyan-500' },
+    { icon: <Globe size={24} />, title: 'واتساب + تلقرام', desc: 'يرد على العملاء في واتساب ويرسلك إشعارات على تلقرام. قنواتك بذكاء اصطناعي واحد.', gradient: 'from-blue-400 to-cyan-500' },
     { icon: <BarChart3 size={24} />, title: 'لوحة تحكم ذكية', desc: 'شوف كل المحادثات، المنتجات، والإحصائيات في مكان واحد. بالعربي طبعاً.', gradient: 'from-amber-400 to-orange-500' },
     { icon: <Megaphone size={24} />, title: 'رسائل تسويقية', desc: 'أنشئ قوالب واتساب وأرسل عروض وتخفيضات لكل عملائك بضغطة زر.', gradient: 'from-pink-400 to-rose-500' },
     { icon: <Lock size={24} />, title: 'آمن ومعزول', desc: 'بيانات كل متجر معزولة تماماً. ما أحد يقدر يشوف بيانات غيره. تشفير كامل.', gradient: 'from-slate-400 to-gray-600' },
@@ -553,7 +553,7 @@ export default function Landing() {
               </Link>
               <div className="mt-8 space-y-3.5 text-sm text-gray-500">
                 <p className="flex items-center gap-2.5"><CheckCircle size={16} className="text-emerald-500 shrink-0" /> ١٠٠ رد ذكي</p>
-                <p className="flex items-center gap-2.5"><CheckCircle size={16} className="text-emerald-500 shrink-0" /> واتساب + إنستقرام</p>
+                <p className="flex items-center gap-2.5"><CheckCircle size={16} className="text-emerald-500 shrink-0" /> واتساب</p>
                 <p className="flex items-center gap-2.5"><CheckCircle size={16} className="text-emerald-500 shrink-0" /> لوحة تحكم كاملة</p>
               </div>
             </div>
